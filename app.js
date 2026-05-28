@@ -5,7 +5,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const app = express()
 const cors = require('cors');
-
+require('dotenv').config()
 app.use(cors({
   origin: '*',  // Electron ke liye
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
