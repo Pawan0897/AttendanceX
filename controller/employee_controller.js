@@ -4,41 +4,57 @@ const ATTENDACE = require('../modal/attendance_Modal');
 
 // *******************************************************************
 const loginEmployee = async (req, res) => {
-    const { email, password } = req.body;
-    const isEmailExist = await EMPLOYEE_INFO_SCHEMA.findOne({ email: email });
+    try {
+        const { email, password } = req.body
 
-    if (!isEmailExist) {
-        return {
-            statucode: 400,
-            message: "Emial is not Valid !!!",
+        // 1. Email check
+        const employee = await EMPLOYEE.findOne({ email: email.toLowerCase() })
+        if (!employee) {
+            return res.send({ statucode: 400, message: "Email is not valid !!!" })
         }
-    }
-    const isPass = await bcrypt.compare(password, isEmailExist?.password)
-    if (!isPass) {
-        return {
-            statucode: 400,
-            message: "Password not matched !!!",
+
+        // 2. Password check
+        const isPass = await bcrypt.compare(password, employee.password)
+        if (!isPass) {
+            return res.send({ statucode: 400, message: "Password not matched !!!" })
         }
+
+        // 3. Employee active mark karo
+        await EMPLOYEE.updateOne(
+            { _id: employee._id },
+            { $set: { isActive: true } }
+        )
+
+        // 4. Attendance record banao
+        const attendance = new ATTENDANCE({
+            employeeId: employee.employeeId,
+            date: moment().format('MMMM Do YYYY'),
+            loginTime: moment().format('MMMM Do YYYY, h:mm:ss a'),
+            status: 'present',
+            loginIP: req.ip || null
+        })
+
+        const saved = await attendance.save()
+
+        // 5. Response bhejo — attendanceId zaroori hai frontend ke liye
+        return res.send({
+            statucode: 200,
+            message: "Welcome Back !!!",
+            data: {
+                attendanceId: saved._id,            // ← electron ko chahiye
+                employeeId: employee.employeeId,
+                fullName: employee.fullName,
+                loginTime: saved.loginTime,
+                date: saved.date
+            }
+        })
+
+    } catch (error) {
+        console.error('Login error:', error)
+        return res.send({ statucode: 500, message: "Server error !!!", error })
     }
-
-    await EMPLOYEE_INFO_SCHEMA.updateOne({ employeeId: isEmailExist?.employeeId }, { $set: { isActive: true } }, { new: true })
-    // *********** abb attendance time star
-    const atteendanceData = new ATTENDACE({
-
-        loginTime: new Date(),
-        status: "present",
-        date: new Date()
-
-    })
-    const data = await atteendanceData.save();
-    return res.send({
-        statucode: 200,
-        message: "Welcome Back !!!",
-        data: data
-    })
-
-
 }
+
 
 // *******************************************************************
 const employeeAdd = async (req, res) => {
@@ -102,32 +118,62 @@ const employeeAdd = async (req, res) => {
 }
 // ******************************************
 const logoutEmployee = async (req, res) => {
-    const { employeeId, loginTime, logoutTime, totalHours } = req.body;
     try {
-        if (!employeeId) {
-            return res.send({
-                statuscode: 400,
-                message: "Employee required !!!"
-            })
+        const { attendanceId, employeeId, totalSeconds } = req.body
 
-        }
-        const today = new Date();
-        today.setHours(0, 0, 0, 0)
-        const data = ATTENDACE.findByIdAndUpdate({ employeeId: employeeId, date: { $gte: today } }, { $set: { loginTime: loginTime, logoutTime: logoutTime, totalHours: totalHours } }, { new: true })
-        if (!data) {
+        if (!attendanceId || !employeeId) {
             return res.send({
-                statuscode: 404,
-                message: "attendance data not found !!!"
+                statucode: 400,
+                message: "attendanceId aur employeeId required hain !!!"
             })
         }
-    }
-    catch (err) {
+
+        const updated = await ATTENDACE.findByIdAndUpdate(
+            attendanceId,
+            {
+                $set: {
+                    logoutTime: moment().format('MMMM Do YYYY, h:mm:ss a'),
+                    totalSeconds: totalSeconds || 0,
+                    totalHours: moment.duration(totalSeconds || 0, 'seconds').humanize(),
+                    status: (totalSeconds || 0) < 14400 ? 'half day' : 'present'
+                }
+            },
+            { new: true }
+        )
+
+        if (!updated) {
+            return res.send({
+                statucode: 404,
+                message: "Attendance record nahi mila !!!"
+            })
+        }
+
+        // Employee inactive mark karo
+        await EMPLOYEE_INFO_SCHEMA.updateOne(
+            { employeeId },
+            { $set: { isActive: false } }
+        )
+
+        return res.send({
+            statucode: 200,
+            message: "Logout successful !!!",
+            data: {
+                employeeId: updated.employeeId,
+                date: updated.date,
+                loginTime: updated.loginTime,
+                logoutTime: updated.logoutTime,
+                totalHours: updated.totalHours,
+                status: updated.status
+            }
+        })
+
+    } catch (err) {
+        console.error('Logout error:', err)
         return res.send({
             statucode: 500,
-            message: "server Error !!!"
+            message: "Server error !!!"
         })
     }
-
 }
 
 module.exports = { employeeAdd, loginEmployee, logoutEmployee }

@@ -1,41 +1,51 @@
 
 const { default: mongoose } = require("mongoose");
-
+const moment = require("moment")
 const { Schema } = mongoose;
 
 const ATTENDACE = new Schema({
 
 
     employeeId: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         ref: "employee",
     },
     date: {
-        type: Date,
-        default: Date.now
+        type: String,
+        default: () => moment().format('MMMM Do YYYY')
     },
     loginTime: {
-        type: String
+        type: String,
+        default: () => moment().format('MMMM Do YYYY, h:mm:ss a')
     },
     logoutTime: {
-        type: String
+        type: String,
+        default: null
     },
     totalHours: {
+        type: String,
+        default: null
+    },
+    totalSeconds: {
         type: Number,
         default: 0
     },
     status: {
         type: String,
-        enum: ["present", "absent", "half day", "leave", "holiday"]
+        enum: ["present", "absent", "half day", "leave", "holiday"],
+        default: "present"
 
     },
-    breaks: [{
-        start: Date,
-        end: Date,
-        duration: Number
-    }],
+    breaks: [
+        {
+            start: { type: String, default: null },
+            end: { type: String, default: null },
+            duration: { type: Number, default: 0 }
+        }
+    ],
     loginIP: {
-        type: String
+        type: String,
+        default: null
     }
 
 }, { timestamps: true })
