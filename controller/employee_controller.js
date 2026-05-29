@@ -120,7 +120,7 @@ const employeeAdd = async (req, res) => {
 const logoutEmployee = async (req, res) => {
     try {
         const { attendanceId, employeeId, totalSeconds } = req.body
-
+        const totalHours = (totalSeconds || 0) / 3600
         if (!attendanceId || !employeeId) {
             return res.send({
                 statucode: 400,
@@ -135,7 +135,9 @@ const logoutEmployee = async (req, res) => {
                     logoutTime: moment().tz('Asia/Kolkata').format('MMMM Do YYYY, h:mm:ss a'),
                     totalSeconds: totalSeconds || 0,
                     totalHours: moment.duration(totalSeconds || 0, 'seconds').humanize(),
-                    status: (totalSeconds || 0) < 14400 ? 'half day' : 'present'
+                    status: totalHours >= 8 ? 'present'
+                        : totalHours >= 4 ? 'half day'
+                            : 'holiday'
                 }
             },
             { new: true }
@@ -144,7 +146,7 @@ const logoutEmployee = async (req, res) => {
         if (!updated) {
             return res.send({
                 statucode: 404,
-                message: "Attendance record nahi mila !!!"
+                message: "No Attendance record!!!"
             })
         }
 
