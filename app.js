@@ -3,23 +3,30 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-const app = express()
+var app = express();  // ← var use karo
 const cors = require('cors');
 require('dotenv').config()
+
 app.use(cors({
-  origin: '*',  // Electron ke liye
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }))
+app.use(logger('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+// ***********
+
+
+
 const userRouter = require("./routes/users_route");
 const db_connection = require('./db_connection/db');
-
 // *******************
 db_connection()
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
-
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
