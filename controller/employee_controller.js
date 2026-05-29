@@ -28,8 +28,8 @@ const loginEmployee = async (req, res) => {
         // 4. Attendance record banao
         const attendance = new ATTENDACE({
             employeeId: employee.employeeId,
-            date: moment().format('MMMM Do YYYY'),
-            loginTime: moment().format('MMMM Do YYYY, h:mm:ss a'),
+            date: moment().tz('Asia/Kolkata').format('MMMM Do YYYY'),
+            loginTime: moment().tz('Asia/Kolkata').format('MMMM Do YYYY, h:mm:ss a'),
             status: 'present',
             loginIP: req.ip || null
         })
@@ -132,7 +132,7 @@ const logoutEmployee = async (req, res) => {
             attendanceId,
             {
                 $set: {
-                    logoutTime: moment().format('MMMM Do YYYY, h:mm:ss a'),
+                    logoutTime: moment().tz('Asia/Kolkata').format('MMMM Do YYYY, h:mm:ss a'),
                     totalSeconds: totalSeconds || 0,
                     totalHours: moment.duration(totalSeconds || 0, 'seconds').humanize(),
                     status: (totalSeconds || 0) < 14400 ? 'half day' : 'present'
