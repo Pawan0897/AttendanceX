@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const EMPLOYEE_INFO_SCHEMA = require('../modal/employee_Modal');
 const ATTENDACE = require('../modal/attendance_Modal');
-const moment = require('moment');
+const moment = require('moment-timezone')
 // *******************************************************************
 const loginEmployee = async (req, res) => {
     try {
