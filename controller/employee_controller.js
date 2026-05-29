@@ -1,14 +1,14 @@
 const bcrypt = require('bcrypt');
 const EMPLOYEE_INFO_SCHEMA = require('../modal/employee_Modal');
 const ATTENDACE = require('../modal/attendance_Modal');
-
+const moment = require('moment');
 // *******************************************************************
 const loginEmployee = async (req, res) => {
     try {
         const { email, password } = req.body
 
         // 1. Email check
-        const employee = await EMPLOYEE.findOne({ email: email.toLowerCase() })
+        const employee = await EMPLOYEE_INFO_SCHEMA.findOne({ email: email.toLowerCase() })
         if (!employee) {
             return res.send({ statucode: 400, message: "Email is not valid !!!" })
         }
@@ -20,13 +20,13 @@ const loginEmployee = async (req, res) => {
         }
 
         // 3. Employee active mark karo
-        await EMPLOYEE.updateOne(
+        await EMPLOYEE_INFO_SCHEMA.updateOne(
             { _id: employee._id },
             { $set: { isActive: true } }
         )
 
         // 4. Attendance record banao
-        const attendance = new ATTENDANCE({
+        const attendance = new ATTENDACE({
             employeeId: employee.employeeId,
             date: moment().format('MMMM Do YYYY'),
             loginTime: moment().format('MMMM Do YYYY, h:mm:ss a'),
