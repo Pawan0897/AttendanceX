@@ -34,13 +34,7 @@ const ATTENDACE = new Schema({
         default: "present"
 
     },
-    breaks: [
-        {
-            start: { type: String, default: null },
-            end: { type: String, default: null },
-            duration: { type: Number, default: 0 }
-        }
-    ],
+
     loginIP: {
         type: String,
         default: null

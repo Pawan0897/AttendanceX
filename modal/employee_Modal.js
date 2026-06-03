@@ -5,7 +5,7 @@ const { Schema } = mongoose;
 const EMPLOYEE_INFO_SCHEMA = new Schema({
     employeeId: {
         type: String,
-        unique: true
+
     },
     fullName: {
         type: String,
@@ -43,4 +43,4 @@ const EMPLOYEE_INFO_SCHEMA = new Schema({
     }
 }, { timestamps: true })
 
-module.exports = mongoose.model("user", EMPLOYEE_INFO_SCHEMA);
+module.exports = mongoose.model("employee", EMPLOYEE_INFO_SCHEMA);

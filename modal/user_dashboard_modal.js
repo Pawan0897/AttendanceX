@@ -1,5 +1,5 @@
 const { default: mongoose } = require("mongoose");
-const bcrypt = require("bcrypt");
+
 const { Schema } = mongoose;
 
 const USER = new Schema({
@@ -32,10 +32,11 @@ const USER = new Schema({
         type: String,
         default: null
     },
-    photo: {
+    image: {
         type: String,
         default: null
     },
+
     lastLogin: {
         type: Date,
         default: null
