@@ -6,42 +6,36 @@ const moment = require('moment-timezone')
 const loginEmployee = async (req, res) => {
     try {
         const { email, password } = req.body
-
-        // 1. Email check
         const employee = await EMPLOYEE_INFO_SCHEMA.findOne({ email: email.toLowerCase() })
         if (!employee) {
             return res.send({ statucode: 400, message: "Email is not valid !!!" })
         }
 
-        // 2. Password check
         const isPass = await bcrypt.compare(password, employee.password)
         if (!isPass) {
             return res.send({ statucode: 400, message: "Password not matched !!!" })
         }
 
-        // 3. Employee active mark karo
         await EMPLOYEE_INFO_SCHEMA.updateOne(
             { _id: employee._id },
             { $set: { isActive: true } }
         )
 
-        // 4. Attendance record banao
         const attendance = new ATTENDACE({
             employeeId: employee.employeeId,
             date: moment().tz('Asia/Kolkata').format('MMMM Do YYYY'),
             loginTime: moment().tz('Asia/Kolkata').format('MMMM Do YYYY, h:mm:ss a'),
             status: 'present',
-            loginIP: req.ip || null
+            // loginIP: req.ip || null
         })
 
         const saved = await attendance.save()
 
-        // 5. Response bhejo — attendanceId zaroori hai frontend ke liye
         return res.send({
             statucode: 200,
             message: "Welcome Back !!!",
             data: {
-                attendanceId: saved._id,            // ← electron ko chahiye
+                attendanceId: saved._id,
                 employeeId: employee.employeeId,
                 fullName: employee.fullName,
                 loginTime: saved.loginTime,
@@ -124,7 +118,7 @@ const logoutEmployee = async (req, res) => {
         if (!attendanceId || !employeeId) {
             return res.send({
                 statucode: 400,
-                message: "attendanceId aur employeeId required hain !!!"
+                message: "Employee Id required  !!!"
             })
         }
 
@@ -159,6 +153,7 @@ const logoutEmployee = async (req, res) => {
         return res.send({
             statucode: 200,
             message: "Logout successful !!!",
+            // **** ye san electron ke through databaseman update hoga!
             data: {
                 employeeId: updated.employeeId,
                 date: updated.date,
@@ -177,5 +172,29 @@ const logoutEmployee = async (req, res) => {
         })
     }
 }
-
-module.exports = { employeeAdd, loginEmployee, logoutEmployee }
+// ********************
+const getAllEmployee = async (req, res) => {
+    try {
+        const employees = await EMPLOYEE_INFO_SCHEMA.find().select('-password')
+        return res.send({
+            statuscode: 200,
+            message: "Employees fetched successfully!",
+            data: employees
+        })
+    } catch (error) {
+        return res.send({ statuscode: 500, message: "Server error!", error })
+    }
+}
+// ************************
+const getEmployee = async (req, res) => {
+    try {
+        const employee = await EMPLOYEE_INFO_SCHEMA.findById(req.params.id).select('-password')
+        if (!employee) {
+            return res.send({ statuscode: 404, message: "Employee not found!" })
+        }
+        return res.send({ statuscode: 200, data: employee })
+    } catch (error) {
+        return res.send({ statuscode: 500, message: "Server error!", error })
+    }
+}
+module.exports = { employeeAdd, loginEmployee, logoutEmployee, getAllEmployee }

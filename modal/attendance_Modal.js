@@ -4,8 +4,6 @@ const moment = require("moment")
 const { Schema } = mongoose;
 
 const ATTENDACE = new Schema({
-
-
     employeeId: {
         type: String,
         ref: "employee",
