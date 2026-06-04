@@ -1,6 +1,6 @@
 
 
-const USER = require("../modal/user_dashboard_modal");
+const USER = require("../modal/user_modal");
 const jwt = require("jsonwebtoken");
 
 const verifyToken = async (req, res, next) => {

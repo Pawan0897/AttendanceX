@@ -1,13 +1,13 @@
 const bcrypt = require('bcrypt');
-const EMPLOYEE_INFO_SCHEMA = require('../modal/employee_Modal');
+
 const ATTENDACE = require('../modal/attendance_Modal');
 const moment = require('moment-timezone')
 // *******************************************************************
 const loginEmployee = async (req, res) => {
     try {
         const { email, password } = req.body
-        const employee = await EMPLOYEE_INFO_SCHEMA.findOne({ email: email.toLowerCase() })
-        if (!employee) {
+        const employee = await USER.findOne({ email: email.toLowerCase() })
+        if (!employee || employee?.role != "employee") {
             return res.send({ statucode: 400, message: "Email is not valid !!!" })
         }
 
@@ -16,7 +16,7 @@ const loginEmployee = async (req, res) => {
             return res.send({ statucode: 400, message: "Password not matched !!!" })
         }
 
-        await EMPLOYEE_INFO_SCHEMA.updateOne(
+        await USER.updateOne(
             { _id: employee._id },
             { $set: { isActive: true } }
         )
@@ -51,65 +51,7 @@ const loginEmployee = async (req, res) => {
 
 
 // *******************************************************************
-const employeeAdd = async (req, res) => {
-    const { employeeId, fullName, phone, role, desgination, isActive, joiningDate, salary, email, password } = req.body;
-    const photo = req.file;
-    const Email = email.toLowerCase();
-    const isemailExist = await EMPLOYEE_INFO_SCHEMA.findOne({ email: Email });
-    const isEmployeeExist = await EMPLOYEE_INFO_SCHEMA.findOne({ employeeId });
-    const hashPasssword = await bcrypt.hash(password, 10);
-    try {
-        // if (role === "hr") {
-        if (isemailExist) {
-            return res.send({
-                statuscode: 409,
-                message: "This Email is Already Exist !!!",
-            })
-        }
-        else if (isEmployeeExist) {
-            return res.send({
-                statuscode: 409,
-                message: "This Email is Already Exist !!!",
-            })
-        }
 
-        else {
-            const data = new EMPLOYEE_INFO_SCHEMA({
-                employeeId,
-                fullName,
-                phone,
-                photo,
-                role,
-                desgination,
-                isActive,
-                joiningDate,
-                salary,
-                email,
-                password: hashPasssword
-
-            })
-            const addEmployee = await data.save()
-
-            return res.send({
-                statuscode: 200,
-                message: "Employee Addedd Successflly !!!"
-            })
-        }
-        // }
-        // else {
-        //     return res.send({
-        //         statucode: 400,
-        //         message: "No Permission  !!!"
-        //     })
-        // }
-
-    } catch (error) {
-        return res.send({
-            statucode: 500,
-            message: "server error !!!", error
-        })
-    }
-}
 // ******************************************
 const logoutEmployee = async (req, res) => {
     try {
@@ -145,7 +87,7 @@ const logoutEmployee = async (req, res) => {
         }
 
         // Employee inactive mark karo
-        await EMPLOYEE_INFO_SCHEMA.updateOne(
+        await USER.updateOne(
             { employeeId },
             { $set: { isActive: false } }
         )
@@ -175,7 +117,7 @@ const logoutEmployee = async (req, res) => {
 // ********************
 const getAllEmployee = async (req, res) => {
     try {
-        const employees = await EMPLOYEE_INFO_SCHEMA.find().select('-password')
+        const employees = await USER.find().select('-password')
         return res.send({
             statuscode: 200,
             message: "Employees fetched successfully!",
@@ -188,7 +130,7 @@ const getAllEmployee = async (req, res) => {
 // ************************
 const getEmployee = async (req, res) => {
     try {
-        const employee = await EMPLOYEE_INFO_SCHEMA.findById(req.params.id).select('-password')
+        const employee = await USER.findById(req.params.id).select('-password')
         if (!employee) {
             return res.send({ statuscode: 404, message: "Employee not found!" })
         }
@@ -197,4 +139,4 @@ const getEmployee = async (req, res) => {
         return res.send({ statuscode: 500, message: "Server error!", error })
     }
 }
-module.exports = { employeeAdd, loginEmployee, logoutEmployee, getAllEmployee }
+module.exports = { loginEmployee, logoutEmployee, getAllEmployee }

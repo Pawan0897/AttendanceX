@@ -34,7 +34,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 // ***************************
 app.use("/api/upload/", express.static(path.join(__dirname, 'upload')));
-// *******************
+// ******************* api call 
 app.use("/user", userRouter);
 
 

@@ -1,45 +1,41 @@
-const USER = require("../modal/user_dashboard_modal");
+const USER = require("../modal/user_modal");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 const userLogin = async (req, res) => {
     try {
         const { email, password } = req.body;
+
+        console.log("req", req.body)
         const isEmailexist = await USER.findOne({ email: email });
+
 
         if (!isEmailexist) {
             return res.send({
                 statuscode: 400,
-                message: "Email is not valid!!"
+                message: "Email is not Exist!"
             })
         }
-
-
         const isPasswordValid = await bcrypt.compare(password, isEmailexist.password);
-
         if (!isPasswordValid) {
             return res.send({
                 statuscode: 400,
-                message: "Password is not valid!!"
+                message: "Password Not Matched!"
             })
         }
 
+        // ************ access Toekn 
+        const accessToken = jwt.sign({ userId: isEmailexist._id, email: isEmailexist.email }, process.env.JWT_SECRET, { expiresIn: "15m" });
+        // *********** refresh token 
+        const refreshToken = jwt.sign({ userId: isEmailexist._id, email: isEmailexist.email, role: isEmailexist.role }, process.env.JWT_REFRESH_TOK, { expiresIn: "7d" });
 
-        const token = jwt.sign({ userId: isEmailexist._id, email: isEmailexist.email }, process.env.JWT_SECRET, { expiresIn: "7d" }
-        );
-        // **token addded 
-        await USER.updateOne({ email }, {
-            $set: {
-                token: token
-            }
-        }, {
-            new: true
-        })
 
+        // xxresxxx
         return res.send({
             statuscode: 200,
             message: "Login Successfully !!!",
-            token: token,
+            token: refreshToken,
+            accessToken: accessToken,
             user: {
                 id: isEmailexist._id,
                 email: isEmailexist.email,
@@ -56,21 +52,21 @@ const userLogin = async (req, res) => {
 }
 
 // **********************************
-const adminRouter = async (req, res) => {
-    console.log("login::::::::");
+const userRegister = async (req, res) => {
 
     try {
         const { name, email, password, role, phone } = req.body;
+        const image = req?.file?.path;
+        console.log(req, "ressssss", image, "imaaaaaaa");
 
-
-        // Validate required fields
+        //>>>>>>>>>>>>>>>>>    Validate required fields
         if (!name || !email || !password || !phone) {
             return res.send({
                 statuscode: 400,
                 message: "Name, email, password, and phone are required!"
             })
         }
-
+        // ************************
         const emailExist = await USER.findOne({ email: email })
         if (emailExist) {
             return res.send({
@@ -81,14 +77,14 @@ const adminRouter = async (req, res) => {
 
         // ===== Hash Password =====
         const hashedPassword = await bcrypt.hash(password, 10);
-
         // ===== Create new User =====
         const newUser = new USER({
             name,
             email,
             password: hashedPassword,
             role: "hr",
-            phone
+            phone,
+            image
 
         })
 
@@ -114,5 +110,65 @@ const adminRouter = async (req, res) => {
         })
     }
 }
+// *****************************
+const employeeAdd = async (req, res) => {
+    const { userId, name, phone, role, desgination, isActive, joiningDate, salary, email, password } = req.body;
+    const image = req?.file?.path;
+    const Email = email.toLowerCase();
+    const isemailExist = await USER.findOne({ email: Email });
+    const isEmployeeExist = await USER.findOne({ userId });
+    const hashPasssword = await bcrypt.hash(password, 10);
+    try {
+        if (role === "hr" || role == "admin") {
+            if (isemailExist) {
+                return res.send({
+                    statuscode: 409,
+                    message: "This Email is Already Exist !!!",
+                })
+            }
+            else if (isEmployeeExist) {
+                return res.send({
+                    statuscode: 409,
+                    message: "This Email is Already Exist !!!",
+                })
+            }
+            // ****************
+            else {
+                const data = new USER({
+                    userId,
+                    name,
+                    phone,
+                    image: image,
+                    role,
+                    desgination,
+                    isActive,
+                    joiningDate,
+                    salary,
+                    email,
+                    password: hashPasssword
 
-module.exports = { userLogin, adminRouter }
+                })
+                const addEmployee = await data.save()
+                return res.send({
+                    statuscode: 200,
+                    message: "Employee Addedd Successflly !!!",
+                    data: addEmployee
+                })
+            }
+        }
+        // ****************
+        else {
+            return res.send({
+                statucode: 400,
+                message: "No Permission  !!!"
+            })
+        }
+        // ****************
+    } catch (error) {
+        return res.send({
+            statucode: 500,
+            message: "server error !!!", error
+        })
+    }
+}
+module.exports = { userLogin, userRegister, employeeAdd }
