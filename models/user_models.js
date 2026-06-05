@@ -14,8 +14,8 @@ const USER = new Schema({
     userId: { type: String, ref: 'User' },
     phone: { type: String, default: null },
     image: { type: String, default: null },
-    designation: { type: String, default: null },   // "Frontend Dev", "Graphic Designer"
-    department: { type: String, default: null },   // "Engineering", "Design"
+    designation: { type: String, default: null },
+    department: { type: String, default: null },
     salary: { type: Number, default: null },
 
     // status

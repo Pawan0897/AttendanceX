@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 
-const ATTENDACE = require('../modal/attendance_Modal');
-const moment = require('moment-timezone')
+const moment = require('moment-timezone');
+const ATTENDACE = require('../models/attendance_Models');
 // *******************************************************************
 const loginEmployee = async (req, res) => {
     try {
@@ -21,7 +21,7 @@ const loginEmployee = async (req, res) => {
             { $set: { isActive: true } }
         )
 
-        const attendance = new ATTENDACE({
+        const attendance = new attendance_Models({
             employeeId: employee.employeeId,
             date: moment().tz('Asia/Kolkata').format('MMMM Do YYYY'),
             loginTime: moment().tz('Asia/Kolkata').format('MMMM Do YYYY, h:mm:ss a'),

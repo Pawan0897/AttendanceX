@@ -1,11 +1,9 @@
 
-
-const USER = require("../modal/user_modal");
 const jwt = require("jsonwebtoken");
-
+const USER = require("../models/user_models");
+// ********************************
 const verifyToken = async (req, res, next) => {
     const token = req.headers.authorization;
-
     if (!token) {
         return res.send({
             status: 400,
@@ -13,7 +11,6 @@ const verifyToken = async (req, res, next) => {
         });
     }
     try {
-
         const verify_token = jwt.verify(token, process.env.JWT_SECRET);
         req.userId = verify_token.userId;
         const user = await USER.findOne({ _id: req.userId });

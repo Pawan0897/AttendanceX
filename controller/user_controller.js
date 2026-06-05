@@ -1,6 +1,7 @@
-const USER = require("../modal/user_modal");
+
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const USER = require("../models/user_models");
 
 const userLogin = async (req, res) => {
     try {
@@ -111,7 +112,7 @@ const userRegister = async (req, res) => {
     }
 }
 // *****************************
-const employeeAdd = async (req, res) => {
+const addEmployee = async (req, res) => {
     const { userId, name, phone, role, desgination, isActive, joiningDate, salary, email, password } = req.body;
     const image = req?.file?.path;
     const Email = email.toLowerCase();
@@ -171,4 +172,4 @@ const employeeAdd = async (req, res) => {
         })
     }
 }
-module.exports = { userLogin, userRegister, employeeAdd }
+module.exports = { userLogin, userRegister, addEmployee }

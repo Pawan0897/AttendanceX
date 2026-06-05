@@ -34,12 +34,11 @@ const ATTENDACE = new Schema({
         default: "present"
 
     },
-
     loginIP: {
         type: String,
         default: null
     }
-
-}, { timestamps: true })
+},
+    { timestamps: true })
 
 module.exports = mongoose.model("attendace", ATTENDACE)
